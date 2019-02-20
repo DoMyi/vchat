@@ -1,4 +1,6 @@
-from socket import AF_INET, socket, SOCK_STREAM
+#from socket import AF_INET,SOCK_STREAM,socket
+from socket import *
+
 from threading import Thread
 
 
@@ -44,7 +46,7 @@ def broadcast(msg, prefix=""):  # prefix is for name identification.
 clients = {}
 addresses = {}
 
-HOST = '192.168.31.76'
+HOST = gethostbyname(gethostname())
 PORT = 33000
 
 BUFSIZ = 1024
