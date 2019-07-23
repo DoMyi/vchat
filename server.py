@@ -16,31 +16,58 @@ def accept_incoming_connections():
 
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
-
-    name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.' % name
-    client.send(bytes(welcome, "utf8"))
-    msg = "%s has joined the chat!" % name
-    broadcast(bytes(msg, "utf8"))
-    clients[client] = name
+    try:
+        name = None
+        name = client.recv(BUFSIZ).decode("utf8")
+        if name == "{quit}":
+            print("<unkown> has disconnected")
+            return 
+        print("User name:%s" %name)
+        welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.' % name
+        client.send(bytes(welcome, "utf8"))
+        msg = "%s has joined the chat!" % name
+        broadcast(bytes(msg, "utf8"))
+        clients[client] = name
+    except:
+        #print("The client would've probably been disconnected!")
+        if name:
+            print("%s has disconnected - name unknown" %addresses[client], name)
+            return
+        else:
+            print("%s - %s has disconnected" %addresses[client])
+            return
 
     while True:
-        msg = client.recv(BUFSIZ)
+        try:
+            msg = client.recv(BUFSIZ)
+        except:
+            print("%s - %s has disconnected" %addresses[client], name)
+            del clients[client]
+            broadcast(bytes("%s has left the chat." % name, "utf8"))
+            
+            break
         if msg != bytes("{quit}", "utf8"):
             broadcast(msg, name+": ")
         else:
-            client.send(bytes("{quit}", "utf8"))
-            #client.close()
+            try:
+                client.send(bytes("{quit}", "utf8"))
+            except:
+                pass
             del clients[client]
+            #client.close()
+            #print(*clients)
+            print("%s has disconnected" %name)
             broadcast(bytes("%s has left the chat." % name, "utf8"))
             break
 
 
 def broadcast(msg, prefix=""):  # prefix is for name identification.
     """Broadcasts a message to all the clients."""
-
     for sock in clients:
-        sock.send(bytes(prefix, "utf8")+msg)
+        try:
+            sock.send(bytes(prefix, "utf8")+msg)
+        except:
+            pass
 
         
 clients = {}
