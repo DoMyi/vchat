@@ -3,6 +3,8 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter
+import sys
+
 
 
 def receive():
@@ -21,14 +23,22 @@ def send(event=None):  # event is passed by binders.
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
     if msg == "{quit}":
-        #client_socket.close()
         top.quit()
+        client_socket.close()
+        top.destroy()
+        sys.exit(0)
 
 
 def on_closing(event=None):
     """This function is to be called when the window is closed."""
-    my_msg.set("{quit}")
-    send()
+    try:
+        client_socket.send(bytes("{quit}", "utf8"))
+        client_socket.close()
+    except:
+        top.destroy()
+        sys.exit(0)
+    top.destroy()
+    
 
 top = tkinter.Tk()
 
@@ -42,6 +52,9 @@ my_msg.set("  ")
 scrollbar = tkinter.Scrollbar(messages_frame)  # adding a scrollbar
 # Following will contain the messages.
 msg_list = tkinter.Listbox(messages_frame, height=15, width=80, yscrollcommand=scrollbar.set)
+img=tkinter.PhotoImage("/images/back.png")
+background_label = tkinter.Label(top, image=img)
+background_label.pack()
 scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 msg_list.pack()
